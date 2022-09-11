@@ -6,11 +6,13 @@ using namespace multi2d;
 
 menu_scene_t::menu_scene_t(on_click_join_game_t on_click_join_game_fn,
                            on_click_host_game_t on_click_host_game_fn,
-                           window_t&            window)
+                           window_t&            window,
+                           bitmap_font_t&       bitmap_font)
   : scene_t(shader_t(menu_vertex_code,
                      menu_fragment_code), window)
   , on_click_join_game_fn_(on_click_join_game_fn)
   , on_click_host_game_fn_(on_click_host_game_fn)
+  , bitmap_font_(bitmap_font)
 {
   assets::geometry::rectangle_t::init_rectangle();
 

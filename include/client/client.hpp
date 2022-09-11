@@ -10,6 +10,7 @@
 #include "util/event_loop.hpp"
 #include "scenes/scene.hpp"
 #include "scenes/menu.hpp"
+#include "scenes/assets/bitmap_font.hpp"
 
 namespace multi2d {
 
@@ -32,6 +33,7 @@ namespace multi2d {
     std::optional<tcp_connection_t> connection_;
     std::optional<tcp_server_t>     server_;
     event_loop_t                    ev_loop_;
+    bitmap_font_t                   bitmap_font_;
   };
 
 }

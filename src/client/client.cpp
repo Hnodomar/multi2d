@@ -4,6 +4,7 @@ using namespace multi2d;
 
 multi2d_client_t::multi2d_client_t(const int width, const int height)
   : window_(width, height)
+  , bitmap_font_("../bitmap_font.bff")
 {
   auto on_join_cb = [](){};
   auto on_host_cb = [](){};
@@ -11,7 +12,8 @@ multi2d_client_t::multi2d_client_t(const int width, const int height)
   auto menu = std::move(
                 std::make_unique<menu_scene_t>(on_join_cb,
                                                on_host_cb,
-                                               window_));
+                                               window_,
+                                               bitmap_font_));
 
   set_scene(std::move(menu));
 }

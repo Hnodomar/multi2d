@@ -65,5 +65,6 @@ endif()
 target_include_directories(multi2D PUBLIC
                            ${client_inc}
                            "${CMAKE_SOURCE_DIR}/include/"
+                           "${CMAKE_SOURCE_DIR}/include/scenes/assets/"
                            "${CMAKE_SOURCE_DIR}/extern/glad/"
                            "${CMAKE_SOURCE_DIR}/extern/glm/glm/")

@@ -8,6 +8,7 @@
 #include "scenes/scene.hpp"
 #include "scenes/assets.hpp"
 #include "client/window.hpp"
+#include "scenes/assets/bitmap_font.hpp"
 
 namespace multi2d {
 
@@ -22,13 +23,14 @@ namespace multi2d {
   const std::string menu_fragment_code = 
   #include "shaders/menu/fragment.vs"
   ;
-  
+
   class menu_scene_t : public scene_t
   {
   public:
     menu_scene_t(on_click_join_game_t on_click_join_game_fn,
                  on_click_host_game_t on_click_host_game_fn,
-                 window_t&            window);
+                 window_t&            window,
+                 bitmap_font_t&       bitmap_font);
 
     virtual ~menu_scene_t();
 
@@ -46,6 +48,8 @@ namespace multi2d {
     
     on_click_join_game_t  on_click_join_game_fn_;
     on_click_host_game_t  on_click_host_game_fn_;
+
+    bitmap_font_t&        bitmap_font_;
 
     std::vector<assets::menus::button_t> buttons_;
     std::pair<double, double>            last_cursor_pos_ = {0.0, 0.0};
