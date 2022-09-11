@@ -15,7 +15,7 @@
 #else
   #include <poll.h>
   #define STR_ERROR_FN strerror
-  #define POLL_FN(x, y, z) poll(x, y, z)
+  #define POLL_FN(x, y, z)::poll(x, y, z)
 #endif
 
 #include "util/util.hpp"

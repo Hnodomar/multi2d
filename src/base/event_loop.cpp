@@ -49,22 +49,24 @@ void event_loop_t::remove_event_listener(const fd_t fd)
 
 void event_loop_t::poll()
 {
-  const auto poll_ret = POLL_FN(poll_fds_.data(), 
-                                poll_fds_.size(), 
-                                0);
-  
-  if (poll_ret == -1) {
-    RUNTIME_THROW(status_t::IO_ERROR,
-      "Polling failed: '%s'", STR_ERROR_FN(errno));
-  }
-
-  for (const auto& poll_fd : poll_fds_) {
-    auto& event_cb = event_callbacks_[poll_fd.fd];
+  if (!poll_fds_.empty()) {
+    const auto poll_ret = POLL_FN(poll_fds_.data(), 
+                                  poll_fds_.size(), 
+                                  0);
     
-    if (!event_cb()) {
-      RUNTIME_THROW(status_t::TASK_FAILURE,
-        "Event callback task failed for fd '%i'",
-        poll_fd.fd);
+    if (poll_ret == -1) {
+      RUNTIME_THROW(status_t::IO_ERROR,
+        "Polling failed: '%s'", STR_ERROR_FN(errno));
+    }
+
+    for (const auto& poll_fd : poll_fds_) {
+      auto& event_cb = event_callbacks_[poll_fd.fd];
+      
+      if (!event_cb()) {
+        RUNTIME_THROW(status_t::TASK_FAILURE,
+          "Event callback task failed for fd '%i'",
+          poll_fd.fd);
+      }
     }
   }
 }
