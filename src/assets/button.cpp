@@ -59,6 +59,11 @@ button_t::button_t(const char*        label,
   screen_coord_boundaries_.output();
 }
 
+button_t::~button_t()
+{
+  glfwSetCursor(window_.window(), nullptr);
+}
+
 const char* button_t::label() const
 {
   return label_;

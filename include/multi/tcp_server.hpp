@@ -28,7 +28,6 @@ namespace multi2d {
   {
   public:
     tcp_server_t(event_loop_t& el,
-                 on_connect_fn_t on_connect_fn,
                  on_client_read_fn_t on_read_fn,
                  addrinfo* a = default_addrinfo(),
                  const int backlog = 10) 
@@ -66,12 +65,20 @@ namespace multi2d {
           return false;
         }
 
+        auto on_client_read_fn = [&, on_read_fn](){
+          
+          
+
+
+          return true;
+        };
+
         client_sessions_.emplace(std::piecewise_construct,
                                  std::forward_as_tuple(server_fd_),
                                  std::forward_as_tuple(user_fd,
                                                        reinterpret_cast<sockaddr_in*>(&addr),
                                                        el_,
-                                                       on_read_fn));
+                                                       on_client_read_fn));
 
         return true;
       };
@@ -80,6 +87,11 @@ namespace multi2d {
     }
 
   private:
+
+    void broadcast_data()
+    {
+
+    }
 
     static addrinfo* default_addrinfo()
     {

@@ -9,6 +9,7 @@
 #include "multi/tcp_connection.hpp"
 #include "util/event_loop.hpp"
 #include "scenes/scene.hpp"
+#include "scenes/world.hpp"
 #include "scenes/menu.hpp"
 #include "assets/bitmap_font.hpp"
 
@@ -24,11 +25,16 @@ namespace multi2d {
 
   private:
 
+    void host_game();
+
     void set_scene(std::unique_ptr<scene_t> scene);
+
+    void set_next_scene(std::unique_ptr<scene_t> scene);
 
     void render_loop();
 
     window_t                        window_;
+    std::unique_ptr<scene_t>        next_scene_;
     std::unique_ptr<scene_t>        scene_;
     std::optional<tcp_connection_t> connection_;
     std::optional<tcp_server_t>     server_;

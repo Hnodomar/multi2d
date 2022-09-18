@@ -27,6 +27,8 @@ namespace multi2d {
              const glm::vec3    scale = glm::vec3(1.0f, 1.0f, 1.0f),
              const glm::vec4    colour = glm::vec4(0.4, 0.4, 0.4, 1));
 
+    virtual ~button_t();
+
     struct boundaries;
     boundaries const& boundaries() const;
 
