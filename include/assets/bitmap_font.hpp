@@ -10,7 +10,8 @@
 #include <glad.h>
 
 #include "util/exception.hpp"
-#include "scenes/assets.hpp"
+#include "scenes/shader.hpp"
+#include "client/window.hpp"
 
 #define BFG_RS_NONE  0x0      // Blend flags
 #define BFG_RS_ALPHA 0x1
@@ -19,9 +20,33 @@
 
 namespace multi2d {
 
+  struct bitmap_font_state_t
+  {
+    bitmap_font_state_t();
+
+    ~bitmap_font_state_t()
+    {
+
+    }
+
+    const std::string bmp_vertex_code = 
+      #include "shaders/text/vertex.vs"
+    ;
+
+    const std::string bmp_fragment_code = 
+      #include "shaders/text/fragment.vs"
+    ;
+
+    shader_t shader;
+    uint32_t vbo;
+    uint32_t vao;
+    uint32_t ebo;
+  };
+
   struct bitmap_header_t
   {
     uint16_t bitmap_id;
+    
     uint32_t image_width;
     uint32_t image_height;
     uint32_t cell_width;
@@ -38,7 +63,8 @@ namespace multi2d {
   {
   public:
 
-    bitmap_font_t(std::string_view bitmap_filepath);
+    bitmap_font_t(std::string_view bitmap_filepath,
+                  window_t&        window);
 
     uint32_t texture_id() const;
 
@@ -46,11 +72,15 @@ namespace multi2d {
                     const float green,
                     const float blue);
 
-    void set_screen(const uint32_t x, const uint32_t y);
+    void set_screen(const float x, const float y);
 
-    void print(const std::string& text);
+    void print(const std::string& text,
+               const float        x_lower,
+               const float        x_upper,
+               const float        y_lower,
+               const float        y_upper);
 
-    void set_print_location(const int x, const int y);
+    void set_print_location(const float x, const float y);
 
     size_t get_pixel_width(const std::string& s) const;
 
@@ -71,14 +101,21 @@ namespace multi2d {
 
     uint32_t render_style_;
 
-    uint32_t print_location_x_;
-    uint32_t print_location_y_;
+    float print_location_x_;
+    float print_location_y_;
 
-    float red_, green_, blue_;
+    uint32_t font_vao_;
+    uint32_t font_vertex_buffer_id_;
+
+    bitmap_font_state_t bmp_font_state_;
+
+    float red_ = 1.0f, green_ = 1.0f, blue_ = 1.0f;
 
     bool invert_y_axis_;
     
     std::vector<uint8_t> image_;
+
+    window_t& window_;
   };
 
 }

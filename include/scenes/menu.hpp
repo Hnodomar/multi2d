@@ -6,9 +6,10 @@
 #include <glm.hpp>
 
 #include "scenes/scene.hpp"
-#include "scenes/assets.hpp"
+#include "assets/bitmap_font.hpp"
+#include "assets/button.hpp"
 #include "client/window.hpp"
-#include "scenes/assets/bitmap_font.hpp"
+#include "assets/bg_image.hpp"
 
 namespace multi2d {
 
@@ -51,7 +52,9 @@ namespace multi2d {
 
     bitmap_font_t&        bitmap_font_;
 
-    std::vector<assets::menus::button_t> buttons_;
+    bg_image_t            bg_image_;
+
+    std::vector<button_t> buttons_;
     std::pair<double, double>            last_cursor_pos_ = {0.0, 0.0};
     std::pair<uint32_t, uint32_t>        last_window_size_ = {0, 0};
     int                                  last_click_state_ = GLFW_RELEASE;

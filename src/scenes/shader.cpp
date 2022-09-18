@@ -43,6 +43,11 @@ uint32_t shader_t::get_id() const
   return id_;
 }
 
+void shader_t::activate_shader() const
+{
+  glUseProgram(id_);
+}
+
 std::string shader_t::get_shader_source(const std::string& filename) const
 {
   std::ifstream ifs;

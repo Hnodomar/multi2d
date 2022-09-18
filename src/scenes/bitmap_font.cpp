@@ -1,8 +1,72 @@
-#include "scenes/assets/bitmap_font.hpp"
+#include "assets/bitmap_font.hpp"
+
+#include <iostream>
 
 using namespace multi2d;
 
-bitmap_font_t::bitmap_font_t(std::string_view sv)
+bitmap_font_state_t::bitmap_font_state_t()
+  : shader(bmp_vertex_code, bmp_fragment_code)
+{
+  shader.activate_shader();
+
+  glGenVertexArrays(1, &vao);
+  glGenBuffers(1, &vbo);
+  glGenBuffers(1, &ebo);
+
+  glBindVertexArray(vao);
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+  std::array<uint32_t, 6> indices = {
+    0, 1, 3,
+    1, 2, 3
+  };
+
+  std::array<float, 32> vertices = {0};
+  glBufferData(GL_ARRAY_BUFFER, 
+               vertices.size() * sizeof(float),
+               vertices.data(),
+               GL_STATIC_DRAW);
+
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+               indices.size() * sizeof(uint32_t),
+               indices.data(),
+               GL_STATIC_DRAW);
+
+  constexpr auto stride = 8 * sizeof(float);
+  
+  glVertexAttribPointer(0,
+                        3,
+                        GL_FLOAT,
+                        GL_FALSE,
+                        stride,
+                        (void*)0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1,
+                        3,
+                        GL_FLOAT,
+                        GL_FALSE,
+                        stride,
+                        (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  glVertexAttribPointer(2,
+                        2,
+                        GL_FLOAT,
+                        GL_FALSE,
+                        stride,
+                        (void*)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
+
+  glBindVertexArray(0);
+}
+
+bitmap_font_t::bitmap_font_t(std::string_view sv,
+                             window_t&        window)
+  : window_(window)
 {
   load_bitmap(sv);
 }
@@ -36,7 +100,8 @@ void bitmap_font_t::load_bitmap(std::string_view sv)
   data.reserve(file_size);
 
   try {
-    ifs.read((char*)data.data(), file_size);
+    ifs.read(reinterpret_cast<char*>(data.data()), 
+             file_size);
   }
   catch (const std::ifstream::failure& e) {
     RUNTIME_THROW(status_t::IO_ERROR,
@@ -103,6 +168,8 @@ void bitmap_font_t::load_bitmap(std::string_view sv)
 
   glGenTextures(1, &texture_id_);
   glBindTexture(GL_TEXTURE_2D, texture_id_);
+  glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+  glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ); 
 
   // Fonts should be rendered at native resolution so no need for texture filtering
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); 
@@ -147,11 +214,17 @@ void bitmap_font_t::set_colour(const float red,
 }
 
 // Sets up an Ortho screen based on the supplied values 
-void bitmap_font_t::set_screen(const uint32_t x, const uint32_t y)
+void bitmap_font_t::set_screen(const float x, const float y)
 {
   glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
   glLoadIdentity();
-
+  glOrtho(0, x, 0, y, -1, 1);
+  glMatrixMode(GL_MODELVIEW);
+/*
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  
   if (invert_y_axis_) {
     glOrtho(0, x, y, 0, -1, 1);
   }
@@ -160,10 +233,30 @@ void bitmap_font_t::set_screen(const uint32_t x, const uint32_t y)
   }
 
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  glLoadIdentity();*/
 }
 
-void bitmap_font_t::print(const std::string& text)
+void orth_start()
+{
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho(0.0f, 800, 600, 0.0f, 0.0f, 1.0f);
+  glMatrixMode(GL_MODELVIEW);
+}
+
+void orth_end()
+{
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+}
+
+void bitmap_font_t::print(const std::string& text,
+                          const float        x_lower,
+                          const float        x_upper,
+                          const float        y_lower,
+                          const float        y_upper)
 {
   if (text.length() > 255) {
     RUNTIME_THROW(status_t::INVALID_ARG,
@@ -171,44 +264,70 @@ void bitmap_font_t::print(const std::string& text)
       text);
   }
 
+  glClear(GL_DEPTH_BUFFER_BIT);
+  
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, texture_id_);
-  set_blend();
 
+  bmp_font_state_.shader.activate_shader();
+
+  glBindVertexArray(bmp_font_state_.vao);
+  glBindBuffer(GL_ARRAY_BUFFER, bmp_font_state_.vbo);
 
   const size_t len = text.length();
 
-  glBegin(GL_QUADS);
+  const float dy =
+    static_cast<float>(header_.cell_height) / 
+      static_cast<float>(window_.window_size().second);
+  
+  print_location_x_ = x_lower;
 
   for (size_t i = 0; i != len; ++i) {
     const int row = (text[i]- header_.base) / cells_per_row_;
     const int col = (text[i] - header_.base) - row * cells_per_row_;
 
-    float u = col * cell_width_ratio_;
-    float v = row * cell_height_ratio_;
-    float u1 = u + cell_width_ratio_;
-    float v1 = v + cell_height_ratio_;
+    const float ratio = (float)header_.cell_height / 
+                         (float)header_.char_widths[text[i]];
 
-    glTexCoord2f(u, v1);  
-    glVertex2i(print_location_x_,
-               print_location_y_);
-    
-    glTexCoord2f(u1, v1); 
-    glVertex2i(print_location_x_ + header_.cell_width,
-               print_location_y_);
-    
-    glTexCoord2f(u1, v);
-    glVertex2i(print_location_x_ + header_.cell_width,
-               print_location_y_ + header_.cell_height);
-    
-    glTexCoord2f(u, v);
-    glVertex2i(print_location_x_,
-               print_location_y_ + header_.cell_height);
-    
-    print_location_x_ += header_.char_widths[text[i]];
+    const float u = col * cell_width_ratio_;
+    const float v = row * cell_height_ratio_;
+    const float u1 = u + cell_width_ratio_;
+    const float v1 = v + cell_height_ratio_;
+
+    float dx = 
+      (2.0 / (float)window_.window_size().first) * 
+        (float)header_.char_widths[text[i]];
+
+    std::array<float, 32> vertices = {
+      print_location_x_, y_lower, 0.0f,
+      1.0f, 0.0f, 0.0f,
+      u, v1,
+
+      print_location_x_ + 0.1, y_lower, 0.0f,
+      0.0f, 1.0f, 0.0f,
+      u1, v1,
+
+      print_location_x_ + 0.1, y_upper, 0.0f,
+      0.0f, 0.0f, 1.0f,
+      u1, v,
+
+      print_location_x_, y_upper, 0.0f,
+      1.0f, 1.0f, 0.0f,
+      u, v
+    };
+
+    glBufferSubData(GL_ARRAY_BUFFER,
+                    0,
+                    vertices.size() * sizeof(float),
+                    vertices.data());
+
+    print_location_x_ += dx;
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
   }
-
-  glEnd();
 }
 
 void bitmap_font_t::set_blend()
@@ -220,11 +339,9 @@ void bitmap_font_t::set_blend()
       glBlendFunc(GL_SRC_ALPHA,GL_SRC_ALPHA);
       glEnable(GL_BLEND);
       break;
-
     case BFG_RS_RGB:   // 24Bit
       glDisable(GL_BLEND);
       break;
-
     case BFG_RS_RGBA:  // 32Bit
       glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
       glEnable(GL_BLEND);
@@ -232,7 +349,7 @@ void bitmap_font_t::set_blend()
   }
 }
 
-void bitmap_font_t::set_print_location(const int x, const int y)
+void bitmap_font_t::set_print_location(const float x, const float y)
 {
   print_location_x_ = x;
   print_location_y_ = y;
@@ -248,5 +365,3 @@ size_t bitmap_font_t::get_pixel_width(const std::string& s) const
 
   return ret;
 }
-
-

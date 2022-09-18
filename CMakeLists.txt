@@ -3,6 +3,7 @@ project(Multi3D)
 
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "-std=c++17 -Wall -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(BOOST_MIN_VERSION "1.70.0")
 
 find_package(Git QUIET)
@@ -29,6 +30,20 @@ file(GLOB_RECURSE client_src "${CMAKE_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE client_inc "${CMAKE_SOURCE_DIR}/include/")
 
 add_executable(multi2D ${client_src})
+
+add_executable(test_t test.cpp 
+                      "${CMAKE_SOURCE_DIR}/src/scenes/shader.cpp"
+                      "${CMAKE_SOURCE_DIR}/src/assets/bg_image.cpp")
+target_link_libraries(test_t PUBLIC
+                      glad
+                      glfw
+                      glm::glm)
+target_include_directories(test_t PUBLIC
+                      ${client_inc}
+                      "${CMAKE_SOURCE_DIR}/include/"
+                      "${CMAKE_SOURCE_DIR}/extern/glad/"
+                      "${CMAKE_SOURCE_DIR}/extern/glm/glm/"
+                      "${CMAKE_SOURCE_DIR}/extern/stb-image/")
 
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
 
@@ -65,6 +80,6 @@ endif()
 target_include_directories(multi2D PUBLIC
                            ${client_inc}
                            "${CMAKE_SOURCE_DIR}/include/"
-                           "${CMAKE_SOURCE_DIR}/include/scenes/assets/"
                            "${CMAKE_SOURCE_DIR}/extern/glad/"
-                           "${CMAKE_SOURCE_DIR}/extern/glm/glm/")
+                           "${CMAKE_SOURCE_DIR}/extern/glm/glm/"
+                           "${CMAKE_SOURCE_DIR}/extern/stb-image/")

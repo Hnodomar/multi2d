@@ -13,7 +13,7 @@ namespace multi2d {
   public:
 
     shader_t(const std::string vertex_code, 
-             const std::string fragment_path);
+             const std::string fragment_code);
 
     void activate_shader() const;
 

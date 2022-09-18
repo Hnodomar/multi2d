@@ -10,7 +10,7 @@
 #include "util/event_loop.hpp"
 #include "scenes/scene.hpp"
 #include "scenes/menu.hpp"
-#include "scenes/assets/bitmap_font.hpp"
+#include "assets/bitmap_font.hpp"
 
 namespace multi2d {
 
