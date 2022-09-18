@@ -37,21 +37,10 @@ namespace multi2d {
 
     void draw_scene() override;
 
-    void process_input() override;
-
   private:
-
-    void adjust_ndc();
-
-    void mouseover_check(const double x, const double y);
-
-    void mousepress_check(const double x, const double y);
 
     void draw_title();
     
-    on_click_join_game_t  on_click_join_game_fn_;
-    on_click_host_game_t  on_click_host_game_fn_;
-
     bitmap_font_t&        bitmap_font_;
 
     bg_image_t            bg_image_;

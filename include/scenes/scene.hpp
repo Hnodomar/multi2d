@@ -52,10 +52,6 @@ namespace multi2d {
 
     virtual void draw_scene() = 0;
 
-    virtual void process_input() = 0;
-
-
-
   protected:
 
     glm::vec3 window_to_obj_coords(const glm::vec3& w_coord)

@@ -8,6 +8,7 @@ button_t::button_t(const char*        label,
                    const glm::vec3    position,
                    const std::string& text,
                    bitmap_font_t&     bitmap_font,
+                   on_clicked_fn_t    on_clicked_fn,
                    const glm::vec3    scale,
                    const glm::vec4    colour)
   : label_(label)
@@ -16,8 +17,11 @@ button_t::button_t(const char*        label,
   , colour_(colour)
   , text_(text)
   , bitmap_font_(bitmap_font)
+  , on_clicked_fn_(on_clicked_fn)
   , window_(window)
 {
+  last_window_size_ = window_.window_size();
+
   model_ = glm::mat4(1.0f);
   model_ = glm::translate(model_, position);
   model_ = glm::scale(model_, scale);
@@ -76,6 +80,55 @@ void button_t::draw()
               colour_.w);
   
   draw_vertices();
+
+  auto curr_window_size = window_.window_size();
+  auto [last_width, last_height] = last_window_size_;
+
+  if (curr_window_size != last_window_size_) {
+    update_boundaries_ndc(last_width,
+                          last_height,
+                          curr_window_size.first,
+                          curr_window_size.second);
+
+    last_window_size_ = curr_window_size;
+  }
+
+  auto curr_cursor_pos = window_.cursor_pos();
+  const auto [x, y] = curr_cursor_pos;
+
+  auto l_click_state = glfwGetMouseButton(window_.window(),
+                                          GLFW_MOUSE_BUTTON_LEFT);
+  
+  bool click_ready = (l_click_state == GLFW_RELEASE &&
+    last_click_state_ == GLFW_PRESS);
+  
+  const bool inside = is_inside(x, y);
+
+  if (click_ready && inside) {
+    on_clicked_fn_();
+  }
+
+  last_click_state_ = l_click_state;
+
+  if (last_cursor_pos_ != curr_cursor_pos) {
+    static bool selected = false;
+
+    if (inside) {
+      selected = true;
+      set_colour({0.6, 0.6, 0.6, 1});
+      static auto c = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+      glfwSetCursor(window_.window(), c);
+    }
+    else {
+      set_colour({0.4, 0.4, 0.4, 1});
+      if (selected == false) {
+        glfwSetCursor(window_.window(), nullptr);
+      }
+      selected = false;
+    }
+
+    last_cursor_pos_ = curr_cursor_pos;
+  }
 
   if (!text_.empty()) {
     auto& b = norm_dc_boundaries_;

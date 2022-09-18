@@ -4,7 +4,7 @@ using namespace multi2d;
 
 multi2d_client_t::multi2d_client_t(const int width, const int height)
   : window_(width, height)
-  , bitmap_font_("../noto.bff", window_)
+  , bitmap_font_("../NANOTYPE.bff", window_)
 {
   auto on_join_cb = [](){};
   auto on_host_cb = [](){};
@@ -28,7 +28,6 @@ void multi2d_client_t::render_loop()
     glfwPollEvents();
     scene_->draw_scene();
     glfwSwapBuffers(window_.window());
-    scene_->process_input();
     ev_loop_.poll();
   }
 }
