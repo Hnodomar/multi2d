@@ -18,11 +18,11 @@ menu_scene_t::menu_scene_t(on_click_join_game_t on_click_join_game_fn,
   glUseProgram(shader_.get_id());
 
   last_window_size_ = window_.window_size();
-  
+
   buttons_.emplace_back("host-game",
                         window_,
                         shader_.get_id(),
-                        glm::vec3(0.0f, 0.3f, 0.0f),
+                        glm::vec3(-0.5f, -0.5f, 0.0f),
                         "HOST GAME",
                         bitmap_font_,
                         glm::vec3(0.5f, 0.5f, 0.5f));
@@ -30,7 +30,7 @@ menu_scene_t::menu_scene_t(on_click_join_game_t on_click_join_game_fn,
   buttons_.emplace_back("join-game",
                         window_,
                         shader_.get_id(),
-                        glm::vec3(0.0f, -0.3f, 0.0f),
+                        glm::vec3(0.5f, -0.5f, 0.0f),
                         "JOIN GAME",
                         bitmap_font_,
                         glm::vec3(0.5f, 0.5f, 0.5f));
@@ -55,6 +55,15 @@ void menu_scene_t::draw_scene()
   for (auto& button : buttons_) {
     button.draw();
   }
+
+  draw_title();
+}
+
+void menu_scene_t::draw_title()
+{
+  bitmap_font_.print("MULTIPLAYER  2D",
+                     {-0.5, 0.4},
+                     { 0.5, 0.9});
 }
 
 void menu_scene_t::process_input()

@@ -253,10 +253,8 @@ void orth_end()
 }
 
 void bitmap_font_t::print(const std::string& text,
-                          const float        x_lower,
-                          const float        x_upper,
-                          const float        y_lower,
-                          const float        y_upper)
+                          glm::vec2          bl_b,
+                          glm::vec2          tr_b)
 {
   if (text.length() > 255) {
     RUNTIME_THROW(status_t::INVALID_ARG,
@@ -277,44 +275,51 @@ void bitmap_font_t::print(const std::string& text,
   glBindVertexArray(bmp_font_state_.vao);
   glBindBuffer(GL_ARRAY_BUFFER, bmp_font_state_.vbo);
 
+  const float pixel_width = get_pixel_width(text);
+
+  float ndc_width = 
+    pixel_width / (float)window_.window_size().first;
+  ndc_width *= 2.0;
+
+  float button_x_interval = tr_b.x - bl_b.x;
+
+  const float eighth_x = ((tr_b.x - bl_b.x) / 8.0);
+  const float x_interval = (button_x_interval - (2.0 * eighth_x));
+
   const size_t len = text.length();
 
-  const float dy =
-    static_cast<float>(header_.cell_height) / 
-      static_cast<float>(window_.window_size().second);
-  
-  print_location_x_ = x_lower;
+  print_location_x_ = bl_b.x + eighth_x;
 
   for (size_t i = 0; i != len; ++i) {
     const int row = (text[i]- header_.base) / cells_per_row_;
     const int col = (text[i] - header_.base) - row * cells_per_row_;
-
-    const float ratio = (float)header_.cell_height / 
-                         (float)header_.char_widths[text[i]];
 
     const float u = col * cell_width_ratio_;
     const float v = row * cell_height_ratio_;
     const float u1 = u + cell_width_ratio_;
     const float v1 = v + cell_height_ratio_;
 
-    float dx = 
-      (2.0 / (float)window_.window_size().first) * 
-        (float)header_.char_widths[text[i]];
+    const float w_ratio = 
+      ((float)header_.char_widths[text[i]] / pixel_width);
+
+    const float dx = w_ratio * x_interval;
+
+    const float quarter_y = ((tr_b.y - bl_b.y) / 4.0);
 
     std::array<float, 32> vertices = {
-      print_location_x_, y_lower, 0.0f,
+      print_location_x_, bl_b.y + quarter_y, 0.0f,
       1.0f, 0.0f, 0.0f,
       u, v1,
 
-      print_location_x_ + 0.1, y_lower, 0.0f,
+      print_location_x_ + dx, bl_b.y + quarter_y, 0.0f,
       0.0f, 1.0f, 0.0f,
       u1, v1,
 
-      print_location_x_ + 0.1, y_upper, 0.0f,
+      print_location_x_ + dx, tr_b.y - quarter_y, 0.0f,
       0.0f, 0.0f, 1.0f,
       u1, v,
 
-      print_location_x_, y_upper, 0.0f,
+      print_location_x_, tr_b.y - quarter_y, 0.0f,
       1.0f, 1.0f, 0.0f,
       u, v
     };

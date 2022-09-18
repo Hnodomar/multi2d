@@ -51,12 +51,10 @@ namespace multi2d {
     bitmap_font_t& bitmap_font_;
     window_t&      window_;
 
-    struct boundaries
+    struct boundary_t
     {
-      glm::vec2 top_left;
       glm::vec2 top_right;
       glm::vec2 bottom_left;
-      glm::vec2 bottom_right;
 
       void output()
       {
@@ -64,14 +62,15 @@ namespace multi2d {
           std::cout << n << " x: " << v.x << " y: " << v.y << std::endl;
         };
 
-        o("top left", top_left);
         o("top right", top_right);
         o("bottom left", bottom_left);
-        o("bottom right", bottom_right);
       }
       
-    } boundaries_;
+    }; 
+    
+    boundary_t screen_coord_boundaries_;
 
+    boundary_t norm_dc_boundaries_;
   };
 
 }

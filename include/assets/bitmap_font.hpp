@@ -8,6 +8,7 @@
 #include <cstring>
 #include <array>
 #include <glad.h>
+#include <glm/ext.hpp>
 
 #include "util/exception.hpp"
 #include "scenes/shader.hpp"
@@ -75,10 +76,8 @@ namespace multi2d {
     void set_screen(const float x, const float y);
 
     void print(const std::string& text,
-               const float        x_lower,
-               const float        x_upper,
-               const float        y_lower,
-               const float        y_upper);
+               glm::vec2          bl_b,
+               glm::vec2          tr_b);
 
     void set_print_location(const float x, const float y);
 

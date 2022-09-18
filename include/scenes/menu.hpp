@@ -46,6 +46,8 @@ namespace multi2d {
     void mouseover_check(const double x, const double y);
 
     void mousepress_check(const double x, const double y);
+
+    void draw_title();
     
     on_click_join_game_t  on_click_join_game_fn_;
     on_click_host_game_t  on_click_host_game_fn_;
