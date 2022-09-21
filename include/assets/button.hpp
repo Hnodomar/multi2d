@@ -49,7 +49,6 @@ namespace multi2d {
   private:
 
     const char*     label_;
-    const uint32_t  shader_;
     glm::vec3       pos_;
     glm::vec4       colour_;
     glm::mat4       model_;

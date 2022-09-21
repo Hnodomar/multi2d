@@ -7,6 +7,10 @@ uint32_t rectangle_t::vao_ = 0;
 
 void rectangle_t::init_rectangle()
 {
+  if (vao_ != 0 || vbo_ != 0) {
+    return;
+  }
+
   glGenVertexArrays(1, &vao_);
 
   glGenBuffers(1, &vbo_);
@@ -32,6 +36,10 @@ void rectangle_t::init_rectangle()
 
 void rectangle_t::destroy_rectangle()
 {
+  if (vao_ == 0 || vbo_ == 0) {
+    return;
+  }
+  
   glDeleteVertexArrays(1, &vao_);
   glDeleteBuffers(1, &vbo_);
 }

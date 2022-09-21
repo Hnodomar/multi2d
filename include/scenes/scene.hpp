@@ -6,10 +6,13 @@
 #include <glad.h>
 #include <array>
 #include <vector>
+#include <map>
+#include <memory>
 
 #include "util/exception.hpp"
 #include "scenes/shader.hpp"
 #include "client/window.hpp"
+#include "assets/asset.hpp"
 
 namespace multi2d {
 
@@ -26,31 +29,35 @@ namespace multi2d {
 
     virtual ~scene_t() 
     {
-      for(const auto& vao : vaos_) {
-        glDeleteVertexArrays(1, &vao);
-      }
-
-      for (const auto& vbo : vbos_) {
-        glDeleteBuffers(1, &vbo);
-      }
-    }
-
-    void add_vao(const uint32_t vao)
-    {
-      vaos_.push_back(vao);
-    }
-
-    void add_vbo(const uint32_t vbo)
-    {
-      vbos_.push_back(vbo);
-    }
-
-    std::vector<uint32_t>& vaos()
-    {
-      return vaos_;
     }
 
     virtual void draw_scene() = 0;
+
+    void add_asset(const char* group, std::unique_ptr<asset_t> asset)
+    {
+      asset->enable();
+      assets_[group].emplace_back(std::move(asset));
+    }
+
+    uint32_t shader_id() const
+    {
+      return shader_.get_id();
+    }
+  
+    void enable_group(const char* group)
+    {
+      auto it = assets_.find(group);
+
+      if (it == assets_.end()) {
+        RUNTIME_THROW(status_t::INVALID_ARG,
+          "Tried enabling asset group %s which does not exist",
+          group);
+      }
+
+      for (auto& asset : it->second) {
+        asset->enable();
+      }
+    }
 
   protected:
 
@@ -74,10 +81,13 @@ namespace multi2d {
     }
     
     glm::mat4             model_;
-    std::vector<uint32_t> vaos_;
-    std::vector<uint32_t> vbos_;
     shader_t              shader_;
     window_t&             window_;
+
+    using asset_group_name_t = const char*;
+    using asset_group_t = std::vector<std::unique_ptr<asset_t>>;
+
+    std::map<asset_group_name_t, asset_group_t> assets_;
   };
 
 }

@@ -6,7 +6,7 @@
 
 namespace multi2d {
   using fd_t = int32_t;
-  using event_cb_t = std::function<bool()>;
+  using event_cb_t = std::function<bool(const uint32_t)>;
 
   enum class status_t
   {

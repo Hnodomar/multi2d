@@ -2,6 +2,7 @@
 #define CLIENT_HPP
 
 #include <optional>
+#include <array>
 #include <memory>
 
 #include "client/window.hpp"
@@ -12,6 +13,8 @@
 #include "scenes/world.hpp"
 #include "scenes/menu.hpp"
 #include "assets/bitmap_font.hpp"
+#include "assets/player.hpp"
+#include "client/key_cb.hpp"
 
 namespace multi2d {
 

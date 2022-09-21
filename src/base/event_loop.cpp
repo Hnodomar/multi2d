@@ -64,7 +64,7 @@ void event_loop_t::poll()
 
       const bool readable = poll_fd.revents & POLLIN;
 
-      if (readable && !event_cb()) {
+      if (readable && !event_cb(poll_fd.fd)) {
         RUNTIME_THROW(status_t::TASK_FAILURE,
           "Event callback task failed for fd '%i'",
           poll_fd.fd);

@@ -11,8 +11,8 @@ button_t::button_t(const char*        label,
                    on_clicked_fn_t    on_clicked_fn,
                    const glm::vec3    scale,
                    const glm::vec4    colour)
-  : label_(label)
-  , shader_(shader)
+  : rectangle_t(shader)
+  , label_(label)
   , pos_(position)
   , colour_(colour)
   , text_(text)
@@ -56,7 +56,6 @@ button_t::button_t(const char*        label,
 
   screen_coord_boundaries_.bottom_left = c_b(norm_dcs[0]);
   screen_coord_boundaries_.top_right = c_b(norm_dcs[1]);
-  screen_coord_boundaries_.output();
 }
 
 button_t::~button_t()
@@ -71,14 +70,14 @@ const char* button_t::label() const
 
 void button_t::draw()
 {
-  glUseProgram(shader_);
+  set_texture();
 
-  glUniformMatrix4fv(glGetUniformLocation(shader_, "model"),
+  glUniformMatrix4fv(glGetUniformLocation(texture_id(), "model"),
                      1,
                      GL_FALSE,
                      glm::value_ptr(model_));
 
-  glUniform4f(glGetUniformLocation(shader_, "button_colour"),
+  glUniform4f(glGetUniformLocation(texture_id(), "button_colour"),
               colour_.x,
               colour_.y,
               colour_.z,

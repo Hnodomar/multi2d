@@ -10,6 +10,7 @@
 #include "assets/button.hpp"
 #include "client/window.hpp"
 #include "assets/bg_image.hpp"
+#include "assets/text_input_box.hpp"
 
 namespace multi2d {
 
@@ -39,13 +40,19 @@ namespace multi2d {
 
   private:
 
+    void enable_assets(const char* group);
+
+    void disable_assets(const char* group);
+
     void draw_title();
     
     bitmap_font_t&        bitmap_font_;
 
     bg_image_t            bg_image_;
 
-    std::vector<button_t> buttons_;
+    bool host_clicked_ = false;
+    bool join_clicked_ = false;
+
     std::pair<double, double>            last_cursor_pos_ = {0.0, 0.0};
     std::pair<uint32_t, uint32_t>        last_window_size_ = {0, 0};
     int                                  last_click_state_ = GLFW_RELEASE;

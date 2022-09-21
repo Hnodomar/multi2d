@@ -254,12 +254,17 @@ void orth_end()
 
 void bitmap_font_t::print(const std::string& text,
                           glm::vec2          bl_b,
-                          glm::vec2          tr_b)
+                          glm::vec2          tr_b,
+                          glm::vec3          colour)
 {
+  if (text.empty()) {
+    return;
+  }
+
   if (text.length() > 255) {
     RUNTIME_THROW(status_t::INVALID_ARG,
       "bitmap_font::print() with text length > 255: '%s'",
-      text);
+      text.c_str());
   }
 
   glClear(GL_DEPTH_BUFFER_BIT);
@@ -271,6 +276,11 @@ void bitmap_font_t::print(const std::string& text,
   glBindTexture(GL_TEXTURE_2D, texture_id_);
 
   bmp_font_state_.shader.activate_shader();
+
+  glUniform3f(glGetUniformLocation(texture_id(), "text_colour"),
+              colour.x,
+              colour.y,
+              colour.z);
 
   glBindVertexArray(bmp_font_state_.vao);
   glBindBuffer(GL_ARRAY_BUFFER, bmp_font_state_.vbo);

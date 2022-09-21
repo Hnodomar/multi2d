@@ -18,6 +18,10 @@ namespace multi2d {
 
   struct rectangle_t : public asset_t
   {
+    rectangle_t(const uint32_t t_id)
+      : asset_t(t_id)
+    {}
+
     virtual ~rectangle_t() {}
 
     static void init_rectangle();

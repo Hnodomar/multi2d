@@ -14,20 +14,22 @@
 
 #include <unordered_map>
 
+#include "assets/asset.hpp"
 #include "util/types.hpp"
 #include "util/event_loop.hpp"
 #include "multi/tcp_connection.hpp"
 
 namespace multi2d {
 
-  using on_connect_fn_t = std::function<bool(const fd_t)>;
+  using on_connect_fn_t = std::function<void (const uint32_t)>;
   using on_client_read_fn_t = std::function<bool()>;
   using on_client_write_fn_t = std::function<void(const fd_t)>;
 
   class tcp_server_t
   {
   public:
-    tcp_server_t(event_loop_t& el,
+    tcp_server_t(event_loop_t&       el,
+                 on_connect_fn_t     on_connect_fn,
                  on_client_read_fn_t on_read_fn,
                  addrinfo* a = default_addrinfo(),
                  const int backlog = 10) 
@@ -49,7 +51,7 @@ namespace multi2d {
           strerror(errno));
       }
 
-      auto on_connect = [&, on_read_fn]() {
+      auto on_connect = [&, on_read_fn, on_connect_fn](const int32_t fd) {
         
         sockaddr addr;
         socklen_t addr_size = sizeof(addr);
@@ -65,13 +67,17 @@ namespace multi2d {
           return false;
         }
 
-        auto on_client_read_fn = [&, on_read_fn](){
+        auto on_client_read_fn = [&, on_read_fn](const uint32_t fd){
           
           
 
 
           return true;
         };
+
+        on_connect_fn(user_fd);
+
+        broadcast_data(user_fd, std::make_pair(0.3f, 0.3f));
 
         client_sessions_.emplace(std::piecewise_construct,
                                  std::forward_as_tuple(server_fd_),
@@ -86,12 +92,17 @@ namespace multi2d {
       el.add_event_listener(server_fd_, std::move(on_connect));
     }
 
-  private:
-
-    void broadcast_data()
+    template<typename data_t>
+    void broadcast_data(const fd_t origin, data_t data)
     {
-
+      for (auto& [fd, conn] : client_sessions_) {
+        if (fd != origin) {
+          //conn.send(); // broadcast position to all clients
+        }
+      }
     }
+
+  private:
 
     static addrinfo* default_addrinfo()
     {
