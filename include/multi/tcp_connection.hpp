@@ -9,24 +9,29 @@
   #include <sys/socket.h>
   #include <arpa/inet.h>
   #include <netinet/ip.h>
+  #include <unistd.h>
 #endif
 
 #include <cstdint>
-#include <unistd.h>
+#include <functional>
 
 #include "util/types.hpp"
 #include "util/event_loop.hpp"
 #include "util/exception.hpp"
+#include "multi/pkt_config.hpp"
+#include "multi/pkt_reader.hpp"
 
 namespace multi2d {
+
+  using on_read_fn_t = std::function<void (pkt_ref_t)>;
 
   class tcp_connection_t
   {
   public:
-    tcp_connection_t(const char* address, 
+    tcp_connection_t(const char*    address, 
                      const uint16_t port, 
-                     event_loop_t& event_loop,  
-                     event_cb_t cb)
+                     event_loop_t&  event_loop,  
+                     on_read_fn_t   cb)
       : fd_(socket(AF_INET, SOCK_STREAM, 0))
       , sockaddr_{AF_INET, htons(port), inet_addr(address), {0}}
       , event_loop_(event_loop)
@@ -49,13 +54,22 @@ namespace multi2d {
           fd_);
       } 
 
-      event_loop_.add_event_listener(fd_, std::move(cb));
+      auto cb_fn = [&, cb](uint32_t fd) {
+        
+        auto pkt_ref = pkt_reader_.read(fd);
+
+        cb(pkt_ref);
+        
+        return true;
+      };
+
+      event_loop_.add_event_listener(fd_, std::move(cb_fn));
     }
 
-    tcp_connection_t(const fd_t fd,
+    tcp_connection_t(const fd_t         fd,
+                     event_loop_t&      event_loop,
                      const sockaddr_in* sockaddr,
-                     event_loop_t& event_loop,
-                     event_cb_t    cb)
+                     event_cb_t         cb)
       : fd_(fd)
       , sockaddr_(*sockaddr)
       , event_loop_(event_loop)
@@ -70,23 +84,24 @@ namespace multi2d {
     }
 
     template<typename data_t>
-    void send(data_t data);
+    void send(pkt_t type, data_t data)
+    {
+      auto buff = make_pkt(type, data);
+
+      std::cout << *(float*)(buff.data() + 3)
+        << " " << *(float*)(buff.data() + 7)
+        << std::endl;
+
+      write_all(fd_, buff.data(), buff.size());
+    }
 
   private:
 
     const fd_t        fd_;
     const sockaddr_in sockaddr_;
     event_loop_t&     event_loop_;
+    pkt_reader_t      pkt_reader_;
   };
-  
-  template<typename data_t>
-  void tcp_connection_t::send(data_t data)
-  {
-    send(fd_, 
-         data_t::encode(), 
-         data_t::len(),
-         0);
-  }
 
 }
 

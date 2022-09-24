@@ -17,27 +17,47 @@
 #include "assets/asset.hpp"
 #include "util/types.hpp"
 #include "util/event_loop.hpp"
+#include "util/util.hpp"
 #include "multi/tcp_connection.hpp"
+#include "multi/pkt_reader.hpp"
+#include "multi/pkt_config.hpp"
 
 namespace multi2d {
 
   using on_connect_fn_t = std::function<void (const uint32_t)>;
-  using on_client_read_fn_t = std::function<bool()>;
-  using on_client_write_fn_t = std::function<void(const fd_t)>;
+  using on_client_read_fn_t = std::function<void (pkt_ref_t)>;
+  using on_client_write_fn_t = std::function<void (const fd_t)>;
 
   class tcp_server_t
   {
   public:
     tcp_server_t(event_loop_t&       el,
-                 on_connect_fn_t     on_connect_fn,
                  on_client_read_fn_t on_read_fn,
-                 addrinfo* a = default_addrinfo(),
-                 const int backlog = 10) 
-      : server_fd_(socket(a->ai_family, a->ai_socktype, a->ai_protocol))
-      , server_sockaddr_(*a->ai_addr)
-      , el_(el)
+                 const char*         port,
+                 const int           backlog = 10) 
+      : el_(el)
     { 
-      if (bind(server_fd_, a->ai_addr, a->ai_addrlen) == -1) {
+      server_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+      if (server_fd_ == -1) {
+        RUNTIME_THROW(status_t::IO_ERROR,
+          "TCP Server failed to set up socket: '%s'",
+          strerror(errno));
+      }
+
+      sockaddr_in addr;
+      try {
+        addr.sin_port = htons(std::stoi(port));
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+      }
+      catch (const std::exception& e) {
+        RUNTIME_THROW(status_t::UNEXPECTED_BEHAVIOUR,
+          "Failed conversion of port str to uint16_t: %s",
+          e.what());
+      }
+
+      sockaddr* addr_ptr = reinterpret_cast<sockaddr*>(&addr);
+      if (bind(server_fd_, addr_ptr, sizeof(sockaddr)) == -1) {
         RUNTIME_THROW(status_t::IO_ERROR,
           "TCP Server failed to bind on fd '%i': '%s'",
           server_fd_,
@@ -51,7 +71,7 @@ namespace multi2d {
           strerror(errno));
       }
 
-      auto on_connect = [&, on_read_fn, on_connect_fn](const int32_t fd) {
+      auto on_connect = [&, on_read_fn](const int32_t fd) {
         
         sockaddr addr;
         socklen_t addr_size = sizeof(addr);
@@ -68,36 +88,34 @@ namespace multi2d {
         }
 
         auto on_client_read_fn = [&, on_read_fn](const uint32_t fd){
-          
-          
+      
+          auto pkt_ref = pkt_reader_.read(fd);
 
+          on_read_fn(pkt_ref);
 
           return true;
         };
 
-        on_connect_fn(user_fd);
-
-        broadcast_data(user_fd, std::make_pair(0.3f, 0.3f));
-
         client_sessions_.emplace(std::piecewise_construct,
-                                 std::forward_as_tuple(server_fd_),
+                                 std::forward_as_tuple(user_fd),
                                  std::forward_as_tuple(user_fd,
-                                                       reinterpret_cast<sockaddr_in*>(&addr),
                                                        el_,
+                                                       reinterpret_cast<sockaddr_in*>(&addr),
                                                        on_client_read_fn));
-
         return true;
       };
 
       el.add_event_listener(server_fd_, std::move(on_connect));
     }
-
+    
     template<typename data_t>
-    void broadcast_data(const fd_t origin, data_t data)
+    void broadcast_data(const fd_t origin, pkt_t type, data_t data)
     {
+      auto buff = make_pkt(type, data);
+
       for (auto& [fd, conn] : client_sessions_) {
         if (fd != origin) {
-          //conn.send(); // broadcast position to all clients
+          write_all(fd, buff.data(), buff.size());
         }
       }
     }
@@ -124,10 +142,11 @@ namespace multi2d {
       return resp;
     }
 
-    const fd_t                                 server_fd_;
-    const sockaddr                             server_sockaddr_;
+    fd_t                                       server_fd_;
+    sockaddr                                   server_sockaddr_;
     std::unordered_map<fd_t, tcp_connection_t> client_sessions_;
     event_loop_t&                              el_;
+    pkt_reader_t                               pkt_reader_; 
   };
 
 }

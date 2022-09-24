@@ -4,6 +4,7 @@
 #include <optional>
 #include <array>
 #include <memory>
+#include <functional>
 
 #include "client/window.hpp"
 #include "multi/tcp_server.hpp"
@@ -15,6 +16,7 @@
 #include "assets/bitmap_font.hpp"
 #include "assets/player.hpp"
 #include "client/key_cb.hpp"
+#include "multi/pkt_config.hpp"
 
 namespace multi2d {
 
@@ -26,9 +28,17 @@ namespace multi2d {
 
     void start();
 
+    std::optional<tcp_server_t>& server();
+
+    std::optional<tcp_connection_t>& connection();
+
   private:
 
-    void host_game();
+    void handle_client_read(pkt_ref_t pkt);
+
+    void host_game(const std::string& port);
+
+    void join_game(const std::string& addr_and_port);
 
     void set_scene(std::unique_ptr<scene_t> scene);
 

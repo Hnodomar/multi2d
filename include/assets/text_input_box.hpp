@@ -6,6 +6,7 @@
 #include <vector>
 #include <array>
 #include <memory>
+#include <algorithm>
 
 #include "assets/asset.hpp"
 #include "assets/bitmap_font.hpp"
@@ -15,6 +16,8 @@
 
 namespace multi2d {
 
+  using on_submit_fn_t = std::function<void (const std::string&)>;
+
   class text_input_box_t : public rectangle_t
   {
   public:
@@ -23,7 +26,7 @@ namespace multi2d {
                      std::string     title,
                      const uint32_t  shader_id,
                      on_clicked_fn_t on_back_clicked,
-                     on_clicked_fn_t on_ok_clicked,
+                     on_submit_fn_t  on_ok_clicked,
                      glm::vec3       pos,
                      glm::vec3       scale);
 
@@ -46,6 +49,7 @@ namespace multi2d {
     bitmap_font_t& bitmap_font_;
     window_t&      window_;
     std::string    title_;
+    std::string    error_str_;
   };
 
 }

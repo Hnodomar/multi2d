@@ -6,6 +6,7 @@
 #include <functional>
 #include <tuple>
 #include <array>
+#include <glm.hpp>
 
 #include "assets/asset.hpp"
 #include "assets/vertices.hpp"
@@ -14,8 +15,7 @@
 namespace multi2d {
 
   using on_player_move_fn_t = std::function<void(const uint32_t,
-                                                 const int32_t, 
-                                                 const int32_t)>;
+                                                 glm::vec2)>;
 
   class player_t : public asset_t, public vertices_t
   {
@@ -33,6 +33,10 @@ namespace multi2d {
     void draw() override;
 
     void draw_vertices() override;
+
+    uint32_t id();
+
+    void update_pos(glm::vec2 pos);
 
   private: 
 

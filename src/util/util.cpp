@@ -17,3 +17,22 @@
     return std::string(ws.begin(), ws.end());
   }
 #endif
+
+void multi2d::write_all(int32_t fd, uint8_t* buffer, uint16_t len)
+{
+  size_t remaining = len;
+
+  while (remaining > 0) {
+    auto bytes_written = ::write(fd, buffer, len);
+
+    if (bytes_written == -1) {
+      RUNTIME_THROW(status_t::IO_ERROR,
+        "Failed writing %i bytes to socket %i, only wrote %i",
+        len,
+        fd,
+        len - remaining);
+    }
+
+    remaining -= bytes_written;
+  }
+}

@@ -2,14 +2,14 @@
 
 using namespace multi2d;
 
-text_input_box_t::text_input_box_t(window_t&      window,
-                                   bitmap_font_t& bitmap_font,
-                                   std::string    title,
-                                   const uint32_t shader_id,
+text_input_box_t::text_input_box_t(window_t&       window,
+                                   bitmap_font_t&  bitmap_font,
+                                   std::string     title,
+                                   const uint32_t  shader_id,
                                    on_clicked_fn_t on_back_clicked,
-                                   on_clicked_fn_t on_ok_clicked,
-                                   glm::vec3      pos,
-                                   glm::vec3      scale)
+                                   on_submit_fn_t  on_ok_clicked,
+                                   glm::vec3       pos,
+                                   glm::vec3       scale)
   : rectangle_t(shader_id)
   , position_(pos)
   , scale_(scale)
@@ -56,7 +56,22 @@ text_input_box_t::text_input_box_t(window_t&      window,
                                                 bitmap_font,
                                                 on_back_clicked,
                                                 glm::vec3(0.3f, 0.5f, 0.3f));
-                                                
+
+  auto on_ok_clicked_fn = [&, on_ok_clicked, txt_box=text_box.get()](){
+    try {
+      on_ok_clicked(txt_box->text());
+    }
+    catch (const multi2d::exception_t& e) {
+      std::string err_str(e.what());
+      std::transform(err_str.begin(),
+                     err_str.end(),
+                     err_str.begin(),
+                     ::toupper);
+
+      error_str_ = "ERROR: " + err_str;
+    }
+  };
+
   glm::vec3 ok_pos = pos;
   ok_pos.x = tr_norm_dc_.x - (x_interval * 0.2);
   ok_pos.y = bl_norm_dc_.y + (y_interval * 0.25);
@@ -66,7 +81,7 @@ text_input_box_t::text_input_box_t(window_t&      window,
                                               ok_pos,
                                               " OK ",
                                               bitmap_font,
-                                              on_ok_clicked,
+                                              on_ok_clicked_fn,
                                               glm::vec3(0.3f, 0.5f, 0.3f));
 
   assets_[0] = std::move(text_box);
@@ -102,4 +117,8 @@ void text_input_box_t::draw()
   for (auto& asset : assets_) {
     asset->draw_asset();
   }
+
+  bitmap_font_.print(error_str_, 
+                    {bl_norm_dc_.x, -0.5f}, 
+                    {-bl_norm_dc_.x, bl_norm_dc_.y});
 }

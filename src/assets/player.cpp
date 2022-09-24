@@ -97,13 +97,16 @@ void player_t::draw()
     c_b(GLFW_KEY_A, position_.x, -0.01);
 
     if (last_pos != position_) {
-      on_player_move_fn_(id_, position_.x, position_.y);
+      std::cout << "XPOS: " << position_.x << "YPOS: " << position_.y
+        << std::endl;
+      on_player_move_fn_(id_, {position_.x, position_.y});
     } 
-
-    model_ = glm::mat4(1.0f);
-    model_ = glm::translate(model_, position_);
-    model_ = glm::scale(model_, scale_);
   }
+
+  model_ = glm::mat4(1.0f);
+  model_ = glm::translate(model_, position_);
+  model_ = glm::scale(model_, scale_);
+
 
   glUniformMatrix4fv(glGetUniformLocation(texture_id(), "model"),
                      1,
@@ -123,4 +126,11 @@ void player_t::draw_vertices()
 {
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
   glBindVertexArray(0);
+}
+
+void player_t::update_pos(glm::vec2 pos)
+{
+  std::cout << "updating pos: " << pos.x << " " << pos.y << std::endl;
+
+  position_ = {pos.x, pos.y, position_.z};
 }

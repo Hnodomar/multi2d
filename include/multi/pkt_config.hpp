@@ -5,9 +5,10 @@
 
 namespace multi2d {
 
-  enum class pkt_t
+  enum class pkt_t : uint8_t
   {
-    PLAYER_POSITON_DATA
+    PLAYER_POSITON_DATA,
+    LAST_PKT_TYPE
   };
 
   struct pkt_header_t
@@ -19,18 +20,34 @@ namespace multi2d {
   class pkt_ref_t
   {
   public:
-    template<typename arr_t>
-    pkt_ref_t(arr_t arr)
-      : data_(arr.data())
+  
+    pkt_ref_t(uint8_t* data, uint32_t id)
+      : client_id_(id)
+      , data_(data)
     {}
 
-    const uint8_t const* data() const
+    uint8_t* payload() const
     {
-      return data_;
+      return data_ + sizeof(pkt_header_t);
     }
     
+    pkt_t type() const
+    {
+      return static_cast<pkt_t>(data_[0]);
+    }
+
+    int32_t id() const
+    {
+      return client_id_;
+    }
+
   private:
-    const uint8_t const* data_;
+
+    int32_t client_id_;
+    
+    uint8_t* data_;
   };
 
 }
+
+#endif

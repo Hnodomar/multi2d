@@ -32,9 +32,45 @@ void world_scene_t::draw_scene()
     }
   }
 
-
   int state = glfwGetKey(window_.window(), GLFW_KEY_ESCAPE);
   if (state == GLFW_PRESS) {
     on_quit_fn_();
+  }
+}
+
+void world_scene_t::update_player_pos(int32_t id, glm::vec2 pos)
+{
+  std::cout << "update player pos" << std::endl;
+  auto it = id_to_player_.find(id);
+  if (it == id_to_player_.end()) {
+    auto& players = assets_["players"];
+    auto player = std::make_unique<player_t>(id, 
+                                             false,
+                                             window_,
+                                             [](const uint32_t,
+                                                glm::vec2){},
+                                             glm::vec3(pos.x, pos.y, 0.0f),
+                                             glm::vec3(0.2f, 0.2f, 0.0f),
+                                             shader_.get_id());
+    player->enable();
+    id_to_player_.emplace(id, *player.get());
+    players.emplace_back(std::move(player));
+  }
+  else {
+    it->second.get().update_pos(pos);
+  }
+}
+
+void world_scene_t::handle_packet(pkt_ref_t pkt)
+{
+  switch (pkt.type()) {
+    case pkt_t::PLAYER_POSITON_DATA:
+      update_player_pos(pkt.id(), 
+                        *reinterpret_cast<glm::vec2*>(pkt.payload()));
+      break;
+    default:
+      RUNTIME_THROW(status_t::UNEXPECTED_BEHAVIOUR,
+        "No handling case for packet type '%i'",
+        pkt.type());
   }
 }

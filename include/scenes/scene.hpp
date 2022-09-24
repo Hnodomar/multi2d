@@ -13,6 +13,7 @@
 #include "scenes/shader.hpp"
 #include "client/window.hpp"
 #include "assets/asset.hpp"
+#include "multi/pkt_config.hpp"
 
 namespace multi2d {
 
@@ -32,6 +33,8 @@ namespace multi2d {
     }
 
     virtual void draw_scene() = 0;
+
+    virtual void handle_packet(pkt_ref_t pkt) = 0;
 
     void add_asset(const char* group, std::unique_ptr<asset_t> asset)
     {

@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <vector>
+#include <string>
 #include <glm.hpp>
 
 #include "scenes/scene.hpp"
@@ -14,9 +15,9 @@
 
 namespace multi2d {
 
-  using on_click_join_game_t = std::function<void()>;
+  using on_click_join_game_t = std::function<void(const std::string&)>;
 
-  using on_click_host_game_t = std::function<void()>;
+  using on_click_host_game_t = std::function<void(const std::string&)>;
 
   const std::string menu_vertex_code = 
   #include "shaders/menu/vertex.vs"
@@ -37,6 +38,8 @@ namespace multi2d {
     virtual ~menu_scene_t();
 
     void draw_scene() override;
+
+    void handle_packet(pkt_ref_t pkt);
 
   private:
 

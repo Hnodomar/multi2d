@@ -135,3 +135,9 @@ void menu_scene_t::draw_title()
                      {-0.5, 0.4},
                      { 0.5, 0.9});
 }
+
+void menu_scene_t::handle_packet(pkt_ref_t pkt)
+{
+  RUNTIME_THROW(status_t::UNEXPECTED_BEHAVIOUR,
+    "Menu scene tried handling packet");
+}

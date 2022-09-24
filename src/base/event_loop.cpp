@@ -6,7 +6,7 @@ void event_loop_t::add_event_listener(const fd_t fd, const event_cb_t cb)
 {
   event_callbacks_[fd] = std::move(cb);
 
-  poll_fds_.push_back({fd, NULL, POLLIN});
+  poll_fds_.push_back({fd, POLLIN, NULL});
 }
 
 void event_loop_t::remove_event_listener(const fd_t fd)
