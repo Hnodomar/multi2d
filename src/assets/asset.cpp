@@ -32,9 +32,10 @@ void asset_t::disable()
   enabled_ = false;
 }
 
-void asset_t::draw_asset()
+void asset_t::draw_asset(scene_state_t& scene_state)
 {
+
   if (enabled_) {
-    draw();
+    draw(scene_state);
   }
 }

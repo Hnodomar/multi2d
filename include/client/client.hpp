@@ -46,6 +46,8 @@ namespace multi2d {
 
     void render_loop();
 
+    void make_player();
+
     window_t                        window_;
     std::unique_ptr<scene_t>        next_scene_;
     std::unique_ptr<scene_t>        scene_;

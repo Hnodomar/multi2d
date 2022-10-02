@@ -255,7 +255,8 @@ void orth_end()
 void bitmap_font_t::print(const std::string& text,
                           glm::vec2          bl_b,
                           glm::vec2          tr_b,
-                          glm::vec3          colour)
+                          glm::vec3          colour,
+                          glm::mat4          model_matrix)
 {
   if (text.empty()) {
     return;
@@ -281,6 +282,11 @@ void bitmap_font_t::print(const std::string& text,
               colour.x,
               colour.y,
               colour.z);
+
+  glUniformMatrix4fv(glGetUniformLocation(texture_id(), "model"),
+                    1,
+                    GL_FALSE,
+                    glm::value_ptr(model_matrix));
 
   glBindVertexArray(bmp_font_state_.vao);
   glBindBuffer(GL_ARRAY_BUFFER, bmp_font_state_.vbo);

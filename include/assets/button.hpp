@@ -8,6 +8,7 @@
 
 #include "assets/rectangle.hpp"
 #include "assets/bitmap_font.hpp"
+#include "scenes/scene.hpp"
 
 namespace multi2d {
 
@@ -32,7 +33,7 @@ namespace multi2d {
     struct boundaries;
     boundaries const& boundaries() const;
 
-    void draw() override;
+    void draw(scene_state_t& scene_state) override;
 
     const char* label() const;
 
@@ -51,7 +52,6 @@ namespace multi2d {
     const char*     label_;
     glm::vec3       pos_;
     glm::vec4       colour_;
-    glm::mat4       model_;
     std::string     text_;
     bitmap_font_t&  bitmap_font_;
     on_clicked_fn_t on_clicked_fn_;

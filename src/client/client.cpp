@@ -6,6 +6,14 @@ multi2d_client_t::multi2d_client_t(const int width, const int height)
   : window_(width, height)
   , bitmap_font_("../NANOTYPE.bff", window_)
 {
+  #if defined(_WIN64) || defined(_WIN32)
+    WSADATA wsa_data;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa_data) != 0) {
+      RUNTIME_THROW(status_t::IO_ERROR,
+        "WSAStartup failed");
+    }
+  #endif
+
   auto on_join_cb = std::bind(&multi2d_client_t::join_game,
                               this,
                               std::placeholders::_1);
@@ -78,7 +86,10 @@ void multi2d_client_t::join_game(const std::string& addr_and_port)
                                 std::placeholders::_1));
   auto on_quit_fn = [&]() 
   {
-    auto on_join_cb = [](const std::string&){};
+    auto on_join_cb = std::bind(&multi2d_client_t::join_game,
+                                this,
+                                std::placeholders::_1);
+
     auto on_host_cb = std::bind(&multi2d_client_t::host_game, 
                                 this,
                                 std::placeholders::_1);
@@ -113,7 +124,7 @@ void multi2d_client_t::join_game(const std::string& addr_and_port)
             "TCP Server does not exist when trying to send player position");
         }
       },
-      glm::vec3(0.3f, 0.3f, 0.0f),
+      glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.2f, 0.2f, 0.0f),
       world->shader_id()
     )
@@ -162,7 +173,7 @@ void multi2d_client_t::host_game(const std::string& port)
             "TCP Server does not exist when trying to send player position");
         }
       },
-      glm::vec3(0.3f, 0.3f, 0.0f),
+      glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(0.2f, 0.2f, 0.0f),
       world->shader_id()
     )
@@ -180,7 +191,6 @@ void multi2d_client_t::host_game(const std::string& port)
                             std::placeholders::_1),
                   port.c_str());
   
-
   set_next_scene(std::move(world));
 }
 

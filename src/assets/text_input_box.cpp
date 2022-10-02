@@ -97,7 +97,7 @@ text_input_box_t::~text_input_box_t()
 {
 }
 
-void text_input_box_t::draw()
+void text_input_box_t::draw(scene_state_t& scene_state)
 { 
   set_texture();
 
@@ -115,7 +115,7 @@ void text_input_box_t::draw()
   draw_vertices();
 
   for (auto& asset : assets_) {
-    asset->draw_asset();
+    asset->draw_asset(scene_state);
   }
 
   bitmap_font_.print(error_str_, 

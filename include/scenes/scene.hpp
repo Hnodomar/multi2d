@@ -17,75 +17,39 @@
 
 namespace multi2d {
 
+  class asset_t;
+
+  struct scene_state_t
+  {
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::vec2 cam_vec = {0.0f, 0.0f};
+  };
+
   class scene_t
   {
   public:
 
-    scene_t(const shader_t shader, window_t& window)
-      : shader_(shader)
-      , window_(window)
-    {
+    scene_t(const shader_t shader, window_t& window);
 
-    }
-
-    virtual ~scene_t() 
-    {
-    }
+    virtual ~scene_t();
 
     virtual void draw_scene() = 0;
 
     virtual void handle_packet(pkt_ref_t pkt) = 0;
 
-    void add_asset(const char* group, std::unique_ptr<asset_t> asset)
-    {
-      asset->enable();
-      assets_[group].emplace_back(std::move(asset));
-    }
+    void add_asset(const char* group, std::unique_ptr<asset_t> asset);
 
-    uint32_t shader_id() const
-    {
-      return shader_.get_id();
-    }
+    uint32_t shader_id() const;
   
-    void enable_group(const char* group)
-    {
-      auto it = assets_.find(group);
+    void enable_group(const char* group);
 
-      if (it == assets_.end()) {
-        RUNTIME_THROW(status_t::INVALID_ARG,
-          "Tried enabling asset group %s which does not exist",
-          group);
-      }
-
-      for (auto& asset : it->second) {
-        asset->enable();
-      }
-    }
+    scene_state_t& state();
 
   protected:
 
-    glm::vec3 window_to_obj_coords(const glm::vec3& w_coord)
-    {
-      glm::mat4 model_matrix, projection_matrix;
-
-      glm::highp_vec4 viewport;
-
-      glGetFloatv(GL_MODELVIEW_MATRIX, 
-        reinterpret_cast<GLfloat*>(&model_matrix));
-      glGetFloatv(GL_PROJECTION_MATRIX, 
-        reinterpret_cast<GLfloat*>(&projection_matrix));
-
-      glGetFloatv(GL_VIEWPORT, &viewport.x);
-
-      return glm::unProject(w_coord, 
-                            model_matrix,
-                            projection_matrix,
-                            viewport);
-    }
-    
-    glm::mat4             model_;
     shader_t              shader_;
     window_t&             window_;
+    scene_state_t         state_;
 
     using asset_group_name_t = const char*;
     using asset_group_t = std::vector<std::unique_ptr<asset_t>>;

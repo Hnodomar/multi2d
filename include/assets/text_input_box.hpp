@@ -32,11 +32,10 @@ namespace multi2d {
 
     virtual ~text_input_box_t();
 
-    void draw() override;
+    void draw(scene_state_t& scene_state) override;
         
   private:
 
-    glm::mat4      model_;
     glm::vec3      position_;
     glm::vec3      scale_;
     glm::vec2      bl_norm_dc_;

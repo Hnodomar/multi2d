@@ -68,7 +68,7 @@ const char* button_t::label() const
   return label_;
 }
 
-void button_t::draw()
+void button_t::draw(scene_state_t& scene_state)
 {
   set_texture();
 

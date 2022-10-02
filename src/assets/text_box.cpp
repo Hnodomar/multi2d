@@ -37,7 +37,7 @@ std::string text_box_t::text() const
   return input_text_;
 }
 
-void text_box_t::draw()
+void text_box_t::draw(scene_state_t& scene_state)
 {  
   set_texture();
 

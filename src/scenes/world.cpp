@@ -24,11 +24,18 @@ void world_scene_t::draw_scene()
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  bitmap_font_.print("THIS IS A GAME", {-0.5, 0.75}, {0.5, 0.9});
+  bitmap_font_.print("THIS IS A GAME", 
+                     {-0.5, 0.75},
+                     {0.5, 0.9},
+                     glm::vec3(1.0f, 1.0f, 1.0f),
+                     glm::translate(glm::mat4(1.0f),
+                                    {state_.cam_vec.x,
+                                     state_.cam_vec.y,
+                                     0.0f}));
 
   for (auto& [an, ag] : assets_) {
     for (auto& a : ag) {
-      a->draw_asset();
+      a->draw_asset(state_);
     }
   }
 
@@ -40,7 +47,6 @@ void world_scene_t::draw_scene()
 
 void world_scene_t::update_player_pos(int32_t id, glm::vec2 pos)
 {
-  std::cout << "update player pos" << std::endl;
   auto it = id_to_player_.find(id);
   if (it == id_to_player_.end()) {
     auto& players = assets_["players"];
@@ -49,7 +55,7 @@ void world_scene_t::update_player_pos(int32_t id, glm::vec2 pos)
                                              window_,
                                              [](const uint32_t,
                                                 glm::vec2){},
-                                             glm::vec3(pos.x, pos.y, 0.0f),
+                                             glm::vec3(0.0f, 0.0f, 0.0f),
                                              glm::vec3(0.2f, 0.2f, 0.0f),
                                              shader_.get_id());
     player->enable();
@@ -59,6 +65,11 @@ void world_scene_t::update_player_pos(int32_t id, glm::vec2 pos)
   else {
     it->second.get().update_pos(pos);
   }
+}
+
+void world_scene_t::set_camera_vec(glm::vec3 v)
+{
+  camera_vec_ = v;
 }
 
 void world_scene_t::handle_packet(pkt_ref_t pkt)

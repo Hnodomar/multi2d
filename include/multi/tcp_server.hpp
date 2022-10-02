@@ -37,7 +37,9 @@ namespace multi2d {
                  const int           backlog = 10) 
       : el_(el)
     { 
-      server_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+      auto s = default_addrinfo(port);
+
+      server_fd_ = socket(s.ai_family, s.ai_socktype, s.ai_protocol);
       if (server_fd_ == -1) {
         RUNTIME_THROW(status_t::IO_ERROR,
           "TCP Server failed to set up socket: '%s'",
@@ -57,7 +59,7 @@ namespace multi2d {
       }
 
       sockaddr* addr_ptr = reinterpret_cast<sockaddr*>(&addr);
-      if (bind(server_fd_, addr_ptr, sizeof(sockaddr)) == -1) {
+      if (bind(server_fd_, s.ai_addr, s.ai_addrlen) == -1) {
         RUNTIME_THROW(status_t::IO_ERROR,
           "TCP Server failed to bind on fd '%i': '%s'",
           server_fd_,
@@ -111,7 +113,7 @@ namespace multi2d {
     template<typename data_t>
     void broadcast_data(const fd_t origin, pkt_t type, data_t data)
     {
-      auto buff = make_pkt(type, data);
+      auto buff = pkt_ref_t::make_pkt(type, data);
 
       for (auto& [fd, conn] : client_sessions_) {
         if (fd != origin) {
@@ -122,16 +124,16 @@ namespace multi2d {
 
   private:
 
-    static addrinfo* default_addrinfo()
+    static addrinfo default_addrinfo(const char* port)
     {
       addrinfo hints, *resp;
 
       std::memset(&hints, 0, sizeof(hints));
-      hints.ai_family = AF_UNSPEC;
+      hints.ai_family = AF_INET;
       hints.ai_socktype = SOCK_STREAM;
       hints.ai_flags = AI_PASSIVE;
 
-      const auto ret = getaddrinfo(NULL, "9100", &hints, &resp);
+      const auto ret = getaddrinfo(NULL, "9000", &hints, &resp);
 
       if (ret != 0) {
         RUNTIME_THROW(status_t::IO_ERROR,
@@ -139,7 +141,7 @@ namespace multi2d {
           gai_strerror(ret));
       }
 
-      return resp;
+      return *resp;
     }
 
     fd_t                                       server_fd_;

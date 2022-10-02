@@ -122,7 +122,7 @@ void menu_scene_t::draw_scene()
 
   for (auto& [gn, ag] : assets_) {
     for (auto& a : ag) {
-      a->draw_asset();
+      a->draw_asset(state_);
     }
   }
 

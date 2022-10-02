@@ -41,6 +41,8 @@ namespace multi2d {
 
     void handle_packet(pkt_ref_t pkt) override;
 
+    void set_camera_vec(glm::vec3 v);
+
   private:
 
     void update_player_pos(int32_t id, glm::vec2 pos);
@@ -49,9 +51,11 @@ namespace multi2d {
 
     bitmap_font_t& bitmap_font_;
 
+    glm::vec3 camera_vec_;
+
     using player_id = int;
     using player_ref_t = std::reference_wrapper<player_t>;
-    
+
     std::map<player_id, player_ref_t> id_to_player_;
   };
 

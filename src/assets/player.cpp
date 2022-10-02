@@ -68,18 +68,28 @@ player_t::player_t(const uint32_t      player_id,
   model_ = glm::mat4(1.0f);
   model_ = glm::translate(model_, pos);
   model_ = glm::scale(model_, scale);
+
+  bl_vertex_.x *= scale_.x;
+  bl_vertex_.y *= scale_.y;
+
+  tr_vertex_.x *= scale_.x;
+  tr_vertex_.y *= scale_.y;
 }
 
 player_t::~player_t()
 {
 }
 
-void player_t::draw()
+void player_t::draw(scene_state_t& scene_state)
 {
   glUseProgram(texture_id());
 
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+  model_ = glm::mat4(1.0f);
+  auto last_pos = position_;
+  glm::vec3 diff;
 
   if (controllable_) {
     auto c_b = [&](int state, float& v, float i) {
@@ -89,22 +99,50 @@ void player_t::draw()
       }
     };
 
-    auto last_pos = position_;
-
-    c_b(GLFW_KEY_W, position_.y, 0.01);
+    c_b(GLFW_KEY_W, position_.y,  0.01);
     c_b(GLFW_KEY_S, position_.y, -0.01);
-    c_b(GLFW_KEY_D, position_.x, 0.01);
+    c_b(GLFW_KEY_D, position_.x,  0.01);
     c_b(GLFW_KEY_A, position_.x, -0.01);
 
+    diff = position_ - last_pos;
+
     if (last_pos != position_) {
-      std::cout << "XPOS: " << position_.x << "YPOS: " << position_.y
-        << std::endl;
+      scene_state.cam_vec.x += -(diff.x);
+      scene_state.cam_vec.y += -(diff.y);
       on_player_move_fn_(id_, {position_.x, position_.y});
     } 
+    //std::cout << "bl_player: X: " << bl.x << " Y: " << bl.y << std::endl; 
+    //std::cout << "tr_player: X: " << tr.x << " Y: " << tr.y << std::endl; 
   }
 
-  model_ = glm::mat4(1.0f);
-  model_ = glm::translate(model_, position_);
+  
+  //std::cout << "bl_cam: X: " << bl_cam_box_.x << " Y: " << bl_cam_box_.y << std::endl; 
+  //std::cout << "tr_cam: X: " << tr_cam_box_.x << " Y: " << tr_cam_box_.y << std::endl; 
+
+ // std::cout << "scene_state: " << scene_state.cam_vec.x << " "
+  //  << scene_state.cam_vec.y << std::endl;
+
+  //std::cout << "position: " << position_.x << " "
+  //  << position_.y << std::endl;
+  
+
+  if (controllable_) {
+    //model_ = glm::translate(model_,
+    //                        glm::vec3(-(diff.x), -(diff.y), 0.0f));
+  }
+  else {
+    model_ = glm::translate(model_, position_);
+    glm::vec3 c = glm::vec3(scene_state.cam_vec.x,
+                            scene_state.cam_vec.y,
+                            0.0f);
+    model_ = glm::translate(model_, c);
+
+    std::cout << "pos: " << position_.x << " " << position_.y << "\n";
+    std::cout << scene_state.cam_vec.x << " " << scene_state.cam_vec.y 
+      << "\n";
+  }
+
+  //model_ = glm::translate(model_, position_);
   model_ = glm::scale(model_, scale_);
 
 
@@ -113,10 +151,19 @@ void player_t::draw()
                      GL_FALSE,
                      glm::value_ptr(model_));
 
+  glm::vec3 colour = glm::vec3(1.0f, 1.0f, 1.0f);
+
+  if (controllable_) {
+    colour = glm::vec3(1.0f, 0.5f, 0.0f);
+  }
+  else {
+    colour = glm::vec3(1.0f, 1.0f, 1.0f);
+  }
+
   glUniform4f(glGetUniformLocation(texture_id(), "player_colour"),
-              1.0f,
-              1.0f,
-              1.0f,
+              colour.x,
+              colour.y,
+              colour.z,
               1.0f);
 
   draw_vertices();
@@ -130,7 +177,5 @@ void player_t::draw_vertices()
 
 void player_t::update_pos(glm::vec2 pos)
 {
-  std::cout << "updating pos: " << pos.x << " " << pos.y << std::endl;
-
   position_ = {pos.x, pos.y, position_.z};
 }

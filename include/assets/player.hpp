@@ -11,6 +11,7 @@
 #include "assets/asset.hpp"
 #include "assets/vertices.hpp"
 #include "client/window.hpp"
+#include "scenes/scene.hpp"
 
 namespace multi2d {
 
@@ -30,7 +31,7 @@ namespace multi2d {
 
     virtual ~player_t();
 
-    void draw() override;
+    void draw(scene_state_t& scene_state) override;
 
     void draw_vertices() override;
 
@@ -44,9 +45,14 @@ namespace multi2d {
 
     const bool controllable_;
 
-    glm::mat4 model_;
     glm::vec3 position_;
     glm::vec3 scale_;
+
+    glm::vec4 bl_vertex_ = {-0.25f, -0.25f, 0.0f, 1.0f};
+    glm::vec4 tr_vertex_ = { 0.25f,  0.25f, 0.0f, 1.0f};
+
+    glm::vec3 bl_cam_box_ = {-0.25f, -0.25f, 0.0f};
+    glm::vec3 tr_cam_box_ = { 0.25f,  0.25f, 0.0f};
 
     on_player_move_fn_t on_player_move_fn_;
 

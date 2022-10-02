@@ -20,15 +20,16 @@ namespace multi2d {
 
     pkt_ref_t read(const uint32_t fd)
     {
-      int bytes_read = ::read(fd,
-                              buffer_.data(),
-                              sizeof(pkt_header_t));
+      int bytes_read = ::recv(fd,
+                              (char*)buffer_.data(),
+                              sizeof(pkt_header_t),
+                              0);
 
       if (bytes_read == -1) {
         RUNTIME_THROW(status_t::IO_ERROR,
           "Failed to read from socket %i: %s",
           fd,
-          strerror(errno));
+          STR_ERROR_FN(errno));
       }
 
       pkt_header_t& hdr = 
@@ -41,15 +42,16 @@ namespace multi2d {
       }
     
       uint8_t* pld_ptr = buffer_.data() + sizeof(pkt_header_t);
-      bytes_read = ::read(fd,
-                          pld_ptr,
-                          hdr.length);
+      bytes_read = ::recv(fd,
+                          (char*)pld_ptr,
+                          hdr.length,
+                          0);
       
       if (bytes_read == -1) {
         RUNTIME_THROW(status_t::IO_ERROR,
           "Failed to read from socket %i: %s",
           fd,
-          strerror(errno));
+          STR_ERROR_FN(errno));
       }
       
      std::cout << (int)static_cast<pkt_t>(*buffer_.data()) << " "

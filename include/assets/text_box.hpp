@@ -7,6 +7,7 @@
 #include "assets/bitmap_font.hpp"
 #include "client/window.hpp"
 #include "client/key_cb.hpp"
+#include "scenes/scene.hpp"
 
 namespace multi2d {
 
@@ -23,7 +24,7 @@ namespace multi2d {
 
     std::string text() const;
 
-    void draw() override;
+    void draw(scene_state_t& scene_state) override;
 
   private:
 
@@ -35,7 +36,6 @@ namespace multi2d {
     glm::vec2      tr_norm_dc_;
     glm::vec3      colour_;
 
-    glm::mat4      model_;
   };
 
 }

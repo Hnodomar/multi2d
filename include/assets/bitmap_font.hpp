@@ -78,7 +78,8 @@ namespace multi2d {
     void print(const std::string& text,
                glm::vec2          bl_b,
                glm::vec2          tr_b,
-               glm::vec3          colour = glm::vec3(1.0f, 1.0f, 1.0f));
+               glm::vec3          colour = glm::vec3(1.0f, 1.0f, 1.0f),
+               glm::mat4          model  = glm::mat4(1.0f));
 
     void set_print_location(const float x, const float y);
 

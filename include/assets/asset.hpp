@@ -5,8 +5,13 @@
 #include <glad.h>
 #include <memory>
 #include <vector>
+#include <glm.hpp>
+
+#include "scenes/scene.hpp"
 
 namespace multi2d {
+
+  struct scene_state_t;
 
   template <typename V, typename... T>
   constexpr auto array_of(T&&... t)
@@ -29,11 +34,11 @@ namespace multi2d {
 
     void enable();
 
-    void draw_asset();
+    void draw_asset(scene_state_t& scene_state);
     
   protected:
 
-    virtual void draw() = 0;
+    virtual void draw(scene_state_t& scene_state) = 0;
 
     virtual void draw_vertices() = 0;
 
@@ -42,6 +47,8 @@ namespace multi2d {
     static uint32_t curr_texture_id_;
 
     const uint32_t t_id_;
+
+    glm::mat4 model_;
 
   };
 
